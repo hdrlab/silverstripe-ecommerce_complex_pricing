@@ -4,6 +4,7 @@
 class ComplexPriceObject extends DataObject {
 
 	public static $db = array(
+		'Title' => 'Varchar(255)',
 		'NewPrice' => 'Currency',
 		'Percentage' => 'Double',
 		'Reduction' => 'Currency',
@@ -15,7 +16,6 @@ class ComplexPriceObject extends DataObject {
 	public static $many_many = array(
 		'Groups' => 'Group',
 		'EcommerceCountries' => 'EcommerceCountry',
-		'DiscountCouponOptions' => 'DiscountCouponOption'
 	);
 
 	public static $searchable_fields = array(
@@ -31,6 +31,7 @@ class ComplexPriceObject extends DataObject {
 	);
 
 	public static $summary_fields = array(
+		'Title' => 'Title',
 		'From' => 'Valid From',
 		'Until' => 'Valid Until',
 		'AppliesTo' => 'Applies To',
@@ -55,6 +56,7 @@ class ComplexPriceObject extends DataObject {
 
 	public function getCMSFields() {
 		$fields = parent::getCMSFields();
+		$fields->replaceField("Title", new TextField("Title", "Title - the name of the promotion/discount (e.g., \"Labour Day Sale\")"));
 		$fields->replaceField("From", new TextField("From", "Valid From - add any date and time"));
 		$fields->replaceField("Until", new TextField("Until", "Valid Until - add any date and time"));
 		$fields->replaceField("NewPrice", new CurrencyField("NewPrice", "PRICE (OPTION 1 / 3) - only enter if there is a set new price independent of the 'standard' price."));
@@ -72,12 +74,6 @@ class ComplexPriceObject extends DataObject {
 		}
 		if($ecommerceCountries = DataObject::get("EcommerceCountry")) {
 			$fields->replaceField("EcommerceCountries", new CheckboxSetField("EcommerceCountries", "Where", $ecommerceCountries->toDropdownMap()));
-		}
-		else {
-			$fields->removeByName("EcommerceCountries");
-		}
-		if($discountCouponOptions = DataObject::get("DiscountCouponOption")) {
-			$fields->replaceField("DiscountCouponOptions", new CheckboxSetField("DiscountCouponOptions", "Discount Coupons", $discountCouponOptions));
 		}
 		else {
 			$fields->removeByName("EcommerceCountries");

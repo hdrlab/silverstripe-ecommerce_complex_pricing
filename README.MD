@@ -1,6 +1,6 @@
 ###############################################
 ecommerce group pricing
-Pre 0.1 proof of concept
+Pre 0.2 proof of concept
 ###############################################
 
 This module is a must for e-commerce applications
@@ -14,6 +14,7 @@ It also provides a price list page.
 Developers
 -----------------------------------------------
 Nicolaas Francken [at] sunnysideup.co.nz
+hans [at] hdrlab.org.nz
 
 
 Requirements
@@ -41,5 +42,14 @@ If you just want one or two things from this module
 then of course you are free to copy them to your
 mysite folder and delete the rest of this module.
 
+History
+-----------------------------------------------
 
+0.2 - 2012/09/25
+- Added the ability to name discounts, and to display the name and other details 
+  via templates
+- Removed the dependency on the ecommerce coupon discount module
+- Fixed some bugs
+
+0.1 - Initial Version
 

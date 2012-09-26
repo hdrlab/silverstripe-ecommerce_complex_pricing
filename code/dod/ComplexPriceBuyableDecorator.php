@@ -2,6 +2,14 @@
 
 
 class ComplexPriceBuyableDecorator extends DataObjectDecorator {
+	
+	/** A cache for the best discount object.
+	 */
+	private $bestDiscount = null;
+	
+	/** A flag indicating if we have performed a search for the best discount.
+	 */
+	private $bestDiscountCached = false;
 
 	public function extraStatics() {
 		return array (
@@ -57,9 +65,77 @@ class ComplexPriceBuyableDecorator extends DataObjectDecorator {
 		}
 		return false;
 	}
+	
+	/** Returns the name of the discount being applied (if any).
+	 */
+	 function DiscountName() {
+	 	 $bestDiscount = $this->getBestDiscount();
+	 	 
+	 	 if($bestDiscount)
+	 	 {
+	 	 	 return $bestDiscount->Title;
+	 	 }
+	 	 else
+	 	 {
+	 	 	 return null;
+	 	 }
+	 }
+	 
+	 /** Returns the discount's end-date or null if there is none.
+	  */
+	 function DiscountEndDate() {
+	 	 $bestDiscount = $this->getBestDiscount();
+	 	 
+	 	 if($bestDiscount)
+	 	 {
+	 	 	 $endDate = new SS_DateTime();
+	 	 	 $endDate->setValue($bestDiscount->Until);
+	 	 	 return $endDate;
+	 	 }
+	 	 else
+	 	 {
+	 	 	 return null;
+	 	 }
+	 }
+	 
+	 /** Returns true if the current discount has an end-date.
+	  */
+	  function DiscountHasEndDate() {
+	  	  $endDate = $this->DiscountEndDate();
+	  	  if($endDate != null){
+	  	  	  return true;
+	  	  }
+	  	  else {
+	  	  	  return false;
+	  	  }
+	  }
 
 	function updateCalculatedPrice(&$startingPrice) {
-		$newPrice = 0;
+		$bestDiscount = $this->getBestDiscount();
+		
+		if($bestDiscount)
+		{
+			$newPrice = $bestDiscount->getCalculatedPrice();
+			if($newPrice > 0)
+			{
+				$startingPrice = $newPrice;
+			}
+		}
+		
+		return $startingPrice;
+	}
+	
+	/** Returns the best discount object (i.e., ComplexPriceObject) for the 
+	 * current user.
+	 */
+	protected function getBestDiscount() {
+		if($this->bestDiscountCached)
+		{
+			// Return the cached discount
+			return $this->bestDiscount;
+		}
+		
+		// No cached discount, so let's search for one
 		$fieldName = $this->owner->ClassName."ID";
 		$singleton = DataObject::get_one("ComplexPriceObject");
 		if($singleton) {
@@ -88,16 +164,15 @@ class ComplexPriceBuyableDecorator extends DataObjectDecorator {
 				$countryID = EcommerceCountry::get_country_id();
 				foreach($prices as $price) {
 					$priceCanBeUsed = true;
-					if($priceGroupComponents = $price->getManyManyComponents('Groups')) {
+					$priceGroupComponents = $price->getManyManyComponents('Groups');
+					if($priceGroupComponents && $priceGroupComponents->count()) {
 						$priceCanBeUsed = false;
-						if($priceGroupComponents && $priceGroupComponents->count()) {
-							//print_r($price->Groups());
-							$priceGroupArray = $priceGroupComponents->column("ID");
-							if(!is_array($priceGroupArray)) {$priceGroupArray = array();}
-							$interSectionArray = array_intersect($priceGroupArray, $memberGroupsArray);
-							if(is_array($interSectionArray) && count($interSectionArray)) {
-								$priceCanBeUsed = true;
-							}
+						//print_r($price->Groups());
+						$priceGroupArray = $priceGroupComponents->column("ID");
+						if(!is_array($priceGroupArray)) {$priceGroupArray = array();}
+						$interSectionArray = array_intersect($priceGroupArray, $memberGroupsArray);
+						if(is_array($interSectionArray) && count($interSectionArray)) {
+							$priceCanBeUsed = true;
 						}
 					}
 					if($priceCanBeUsed) {
@@ -132,17 +207,16 @@ class ComplexPriceBuyableDecorator extends DataObjectDecorator {
 						}
 					}
 					if($priceCanBeUsed) {
-						$newPrice = $price->getCalculatedPrice();
+						$this->bestDiscount = $price;
 					}
 				}
 			}
 		}
-		if($newPrice > 0) {
-			$startingPrice = $newPrice;
-		}
-		return $startingPrice;
+		
+		$this->bestDiscountCached = true;
+		
+		return $this->bestDiscount;
 	}
-
 }
 
 
