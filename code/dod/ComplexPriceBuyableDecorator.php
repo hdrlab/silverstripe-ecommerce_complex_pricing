@@ -81,6 +81,35 @@ class ComplexPriceBuyableDecorator extends DataObjectDecorator {
 	 	 }
 	 }
 	 
+	 /** Returns the discount's start-date or null if there is none.
+	  */
+	 function DiscountStartDate() {
+	 	 $bestDiscount = $this->getBestDiscount();
+	 	 
+	 	 if($bestDiscount)
+	 	 {
+	 	 	 $startDate = new SS_DateTime();
+	 	 	 $startDate->setValue($bestDiscount->From);
+	 	 	 return $startDate;
+	 	 }
+	 	 else
+	 	 {
+	 	 	 return null;
+	 	 }
+	 }
+	 
+	 /** Returns true if the current discount has an end-date.
+	  */
+	  function DiscountHasStartDate() {
+	  	  $startDate = $this->DiscountStartDate();
+	  	  if($startDate != null){
+	  	  	  return true;
+	  	  }
+	  	  else {
+	  	  	  return false;
+	  	  }
+	  }
+	 
 	 /** Returns the discount's end-date or null if there is none.
 	  */
 	 function DiscountEndDate() {
